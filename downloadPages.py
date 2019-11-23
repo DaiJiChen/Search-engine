@@ -9,7 +9,7 @@ def downloadPages(input):
     f = open(input, "r")
 
     for url in f:
-        print("Getting contents of" +url.strip())
+        print("Getting contents from " +url.strip().strip('https://'))
         getDocument(url.strip())
 
     pagesList = [f for f in os.listdir('./pages') if f.endswith('.txt')]
