@@ -34,7 +34,7 @@ def search():
 
     query = query.lower().split()
     useful_query = [q.strip(useless_char) for q in query]
-    useful_query = [i for i in useful_query if not i in (stop_words and '')]
+    useful_query = [i for i in useful_query if not i in (stop_words or '')]
 
     unique_query = set(useful_query)
 
@@ -62,6 +62,7 @@ def search():
             print(t)
         
 if __name__ == "__main__":
+    print(sorted(stop_words))
     pages = downloadPages('input.txt')
     trie = trie.Trie(pages)
     dictionary = trie.dictionary
