@@ -9,23 +9,10 @@ from downloadPages import downloadPages
 import trie
 
 useless_char = " .,!@#$%^&*();:\n\t\\\"?!{}[]<>"  # Strip these characters in the document
-
 stop_words = set(stopwords.words('english'))
 
 
-def similarity(query,id,frequency):
-    similarity = 0.0
-    for word in query:
-        if word in dictionary and id in trie.findPages(word):
-                inverseFrequency = math.log(len(pages) / len(frequency[word]), 2)
-                importance = frequency[word][id]*inverseFrequency
-                similarity += importance**2
-    if pageLength[id] != 0:
-        similarity = similarity / pageLength[id]
-    return similarity
-
-# search:
-# desc: takes user input and performs search
+# take an input query and search for all web pages that contain this query ( lsit them by relativity)
 def search():
     t = PrettyTable(['Match Score', 'Account'])
     query = input("Input query or input exit:  ")
@@ -60,6 +47,18 @@ def search():
             for (id,score) in scores:
                 t.add_row([round(score, 4), pages[id].strip('.txt').split('/pages/')[1]])
             print(t)
+
+def similarity(query,id,frequency):
+    similarity = 0.0
+    for word in query:
+        if word in dictionary and id in trie.findPages(word):
+                inverseFrequency = math.log(len(pages) / len(frequency[word]), 2)
+                importance = frequency[word][id]*inverseFrequency
+                similarity += importance**2
+    if pageLength[id] != 0:
+        similarity = similarity / pageLength[id]
+    return similarity
+
         
 if __name__ == "__main__":
     print(sorted(stop_words))

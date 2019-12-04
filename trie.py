@@ -1,4 +1,3 @@
-from typing import Tuple
 from nltk.corpus import stopwords
 import codecs
 from collections import defaultdict
@@ -35,12 +34,54 @@ class Trie:
             for word in unique_words:
                 self.postings[word][id] = words.count(word)  # the value is the frequency of the term in the document
 
+        # create a trie by inserting words one by one
         for word in self.dictionary:
             self.add(self.root, word)
 
+        for child in self.root.children:
+            if (child.char == 't'):
+                for tchild in child.children:
+                    if tchild.char == 'r':
+                        for rchild in tchild.children:
+                            print(rchild.char)
+
+        # traverse the whole trie and remove redundant nodes.
+        self.compress(self.root)
+
+        for child in self.root.children:
+            if (child.char == 't'):
+                for tchild in child.children:
+                    if tchild.char == 'r':
+                        for rchild in tchild.children:
+                            print(rchild.char)
+
         self.findDocLength(pages)
 
+    # an recursive method that removing redundant nodes.
+    def compress(self, node):
+        node = node
+        # This is a external node
+        if len(node.children) == 0 and node.word_finished == True:
+            return
+        # this is a redundant node
+        elif len(node.children) == 1:
+            child = node.children[0]
 
+            node.char = node.char + child.char
+            node.children = child.children
+            node.word_finished = child.word_finished
+            node.pageIDs = child.pageIDs
+
+            self.compress(node)
+
+        # this node has more than one child
+        elif len(node.children) > 1:
+            for child in node.children:
+                self.compress(child)
+
+        # An error occur
+        else:
+            print("Error: found a external node that has no child")
 
     def add(self,root, word):
         node = root
@@ -76,9 +117,9 @@ class Trie:
                     char_not_found = False
                     node = child
                     break
-
             if char_not_found:
                 return {}
+
         return node.pageIDs
 
 
