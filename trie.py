@@ -16,48 +16,43 @@ class TrieNode(object):
 class Trie:
 
     def __init__(self, pages):
-        self.pages = pages
-        self.useless_char = " .,!#$%^&*();:\n\t\\\"?!{}[]<>"  # Strip these characters in the document
-        self.stop_words = set(stopwords.words('english'))
-
         self.postings = defaultdict(dict)
         self.pageLength = defaultdict(float) # value is Euclidean length of each page.
-
         self.dictionary = set()
         self.root = TrieNode('*')
 
+        self.createDictionary(pages)
+
+        for word in self.dictionary: # create Trie by adding words one by one
+            self.add(self.root, word)
+
+        self.compress(self.root)
+
+        self.findDocLength(pages)
+
+
+    # traversal all the documents and add every unique word to a set
+    def createDictionary(self, pages):
+        useless_char = " .,!#$%^&*();:\n\t\\\"?!{}[]<>"  # Strip these characters in the document
+        useless_words = set(stopwords.words('english'))
+
         for id in pages:
-            words = self.getWords(id)
+            f = codecs.open(pages[id], encoding='utf-8')
+            text = f.read()
+            f.close()
+
+            words = text.lower().split()
+            words = [word.strip(useless_char) for word in words]
+            words = [i for i in words if not i in useless_words]
             unique_words = set(words)
+
             self.dictionary = self.dictionary.union(unique_words)
 
             for word in unique_words:
                 self.postings[word][id] = words.count(word)  # the value is the frequency of the term in the document
 
-        # create a trie by inserting words one by one
-        for word in self.dictionary:
-            self.add(self.root, word)
 
-        for child in self.root.children:
-            if (child.char == 't'):
-                for tchild in child.children:
-                    if tchild.char == 'r':
-                        for rchild in tchild.children:
-                            print(rchild.char)
-
-        # traverse the whole trie and remove redundant nodes.
-        self.compress(self.root)
-
-        for child in self.root.children:
-            if (child.char == 't'):
-                for tchild in child.children:
-                    if tchild.char == 'r':
-                        for rchild in tchild.children:
-                            print(rchild.char)
-
-        self.findDocLength(pages)
-
-    # an recursive method that removing redundant nodes.
+    # removing redundant nodes recursively
     def compress(self, node):
         node = node
         # This is a external node
@@ -83,6 +78,8 @@ class Trie:
         else:
             print("Error: found a external node that has no child")
 
+
+    # add a word to the trie
     def add(self,root, word):
         node = root
         for char in word:
@@ -104,24 +101,46 @@ class Trie:
         node.word_finished = True
         node.pageIDs = self.postings[word]
 
+
+    # find all web pages that contain a word
     def findPages(self, word):
         node = self.root
 
         if not self.root.children:
             return {}
 
-        for char in word:
+        word = list(word)
+        while(len(word)!=0):
             char_not_found = True
             for child in node.children:
-                if child.char == char:
+                childChars = list(child.char)
+                if self.isPrefix(childChars, word):
                     char_not_found = False
                     node = child
+                    word = word[len(child.char):]
                     break
             if char_not_found:
-                return {}
-
+                return{}
         return node.pageIDs
+        #for char in chars:
+        #    char_not_found = True
+        #    for child in node.children:
+        #        if child.char == char:
+        #            char_not_found = False
+        #            node = child
+        #            break
+        #    if char_not_found:
+        #        return {}
+        #return node.pageIDs
 
+
+    # validate prifix of a word
+    def isPrefix(self, prefix, word):
+        is_prefix = True
+        for c1, c2 in zip(prefix, word):
+            if c1 != c2:
+                is_prefix = False
+        return is_prefix
 
 
     # calculete Euclidean length of each document.
@@ -136,13 +155,3 @@ class Trie:
             self.pageLength[id] = math.sqrt(l)
 
 
-    def getWords(self, id):
-        f = codecs.open(self.pages[id], encoding='utf-8')
-        text = f.read()
-        f.close()
-
-        words = text.lower().split()
-        words = [word.strip(self.useless_char) for word in words]
-        words = [i for i in words if not i in self.stop_words]
-
-        return words

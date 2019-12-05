@@ -9,27 +9,28 @@ from downloadPages import downloadPages
 import trie
 
 useless_char = " .,!@#$%^&*();:\n\t\\\"?!{}[]<>"  # Strip these characters in the document
-stop_words = set(stopwords.words('english'))
+useless_words = set(stopwords.words('english'))
 
 
 # take an input query and search for all web pages that contain this query ( lsit them by relativity)
 def search():
-    t = PrettyTable(['Match Score', 'Account'])
+    t = PrettyTable(['Match Score', 'Web page'])
+
     query = input("Input query or input exit:  ")
     if query == "exit":
         sys.exit()
 
     query = query.lower().split()
-    useful_query = [q.strip(useless_char) for q in query]
-    useful_query = [i for i in useful_query if not i in (stop_words or '')]
-
-    unique_query = set(useful_query)
-
-    if not query :
+    if not query:
         print("Warning: Your input cannot be empty, please input again!")
+        return
 
-    elif not unique_query:
+    query = [q.strip(useless_char) for q in query]
+    query = [i for i in query if i not in useless_words]
+    unique_query = set([i for i in query if len(i) != 0])
+    if not unique_query: # no useful information in query
         print("Warning: Your input dese not conatin any useful information, please input again!")
+        return
 
     else:
         # store numerous dictionaries, each dictionary store a word's appear times in every page.
@@ -40,13 +41,14 @@ def search():
         sets = [set(f.keys()) for f in frequency.values()]
         unique_page_id = reduce(set.union, [s for s in sets])
         if not unique_page_id:
-            print ("No documents matched the given query")
+            print ("Sorry! No matching documents")
         else:
-            print (str(len(unique_page_id))+" documents matched the given query")
+            print (str(len(unique_page_id))+" documents matched")
             scores = sorted([(id,similarity(unique_query,id, frequency))for id in unique_page_id], key=lambda x: x[1],reverse=True)
             for (id,score) in scores:
                 t.add_row([round(score, 4), pages[id].strip('.txt').split('/pages/')[1]])
             print(t)
+
 
 def similarity(query,id,frequency):
     similarity = 0.0
@@ -61,7 +63,6 @@ def similarity(query,id,frequency):
 
         
 if __name__ == "__main__":
-    print(sorted(stop_words))
     pages = downloadPages('input.txt')
     trie = trie.Trie(pages)
     dictionary = trie.dictionary

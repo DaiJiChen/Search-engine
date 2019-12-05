@@ -3,9 +3,10 @@ import requests
 from bs4 import BeautifulSoup
 import os
 
-pages = {}
 
 def downloadPages(input):
+    pages = {}
+
     f = open(input, "r")
 
     for url in f:
