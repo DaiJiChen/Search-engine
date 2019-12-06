@@ -23,10 +23,10 @@ class Trie:
 
         self.createDictionary(pages)
 
-        for word in self.dictionary: # create Trie by adding words one by one
+        for word in self.dictionary: # create a normal trie by adding words one by one
             self.add(self.root, word)
 
-        self.compress(self.root)
+        self.compress(self.root) # remove redundant node to became a compress trie
 
         self.findDocLength(pages)
 

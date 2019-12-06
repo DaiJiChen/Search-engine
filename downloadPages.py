@@ -16,6 +16,7 @@ def downloadPages(input):
     pagesList = [f for f in os.listdir('./pages') if f.endswith('.txt')]
     for i in range(len(pagesList)):
         pages[i]= './pages/' +pagesList[i]
+    print()
     return pages
 
 
